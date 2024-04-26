@@ -1,8 +1,6 @@
-# Exchange Rate Canister
+# XRC Canister for Exchange Rate
+[XRC canister](https://forum.dfinity.org/t/new-exchange-rate-mechanism/14543)
 
-This sample code illustrates how to interact with the
-[exchange rate canister](https://forum.dfinity.org/t/new-exchange-rate-mechanism/14543)
-on the [Internet Computer](https://internetcomputer.org/).
 
 ## Installation
 
@@ -11,8 +9,7 @@ Note that [dfx](https://github.com/dfinity/sdk) and [npm](https://docs.npmjs.com
 Clone the repository, get the node dependencies, and build the canisters.
 
 ```bash
-git clone git@github.com:THLO/xrc_demo.git
-cd xrc_demo/
+cd XRC-Canister/
 npm install
 dfx build --network ic
 ```

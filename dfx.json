@@ -1,7 +1,7 @@
 {
   "canisters": {
-    "xrc_demo": {
-      "main": "src/xrc_demo/main.mo",
+    "xrc_canister": {
+      "main": "src/xrc_canister/main.mo",
       "type": "motoko",
       "dependencies": ["xrc"]
     },
