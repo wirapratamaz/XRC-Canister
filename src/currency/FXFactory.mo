@@ -28,64 +28,52 @@ import HttpTypes "../http/http";
 import { Json; Candid; CBOR; URLEncoded } "mo:serde";
 import Helper "../helper/helper";
 
-// build general class for exchange rates
-// using a temp price feed service for rates 10 min cached for https outcall performance
+// Build general class for exchange rates
+// Using a temporary price feed service for rates cached for 10 minutes for HTTPS outcall performance
 module {
 
     public class CurrencyFactory(calling_actor : Text, _test_mode : Bool) {
 
         public let TEST_MODE = _test_mode;
-
         private let main_actor_id = calling_actor;
 
-        //convert from USD > #usd
+        // Convert from USD > #usd
         public func getCurrency(name : Text) : async Types.Currency {
             assert (Text.size(name) == 3);
             let fx = getFxBootstrap();
             let match = Array.find<Types.CurrencyQuote>(fx, func(x) = x.name == Text.toUppercase(name));
             switch (match) {
-                case null Debug.trap("getToken could not match " # debug_show (name));
+                case null Debug.trap("getCurrency could not match " # debug_show (name));
                 case (?match) {
                     return match.currency_type;
                 };
             };
         };
 
-        //convert from #usd to USD
+        // Convert from #usd to USD
         public func currencyToText(currency : Types.Currency) : Text {
             switch (currency) {
-                case (#eur) {
-                    return "EUR";
-                };
-                case (#cad) {
-                    return "CAD";
-                };
-                case (#usd) {
-                    return "USD";
-                };
-                case (#gbp) {
-                    return "GBP";
-                };
-                case (#chf) {
-                    return "CHF";
-                };
+                case (#eur) { return "EUR"; };
+                case (#cad) { return "CAD"; };
+                case (#usd) { return "USD"; };
+                case (#gbp) { return "GBP"; };
+                case (#chf) { return "CHF"; };
             };
         };
 
-        //get latest fx
+        // Get the latest FX quote
         public func getQuote(currency : Types.Currency) : async ?Types.CurrencyQuote {
             var bootstrap = getFxBootstrap();
             if (currency == #usd) {
-                //we peg everything to 1 USD
+                // We peg everything to 1 USD
                 return Array.find<(Types.CurrencyQuote)>(bootstrap, func(x) = x.currency_type == currency);
             };
             let match = Array.find<(Types.CurrencyQuote)>(bootstrap, func(x) = x.currency_type == currency);
             switch (match) {
                 case null return null;
                 case (?match) {
-                    //var quote_in_usd = await getFXChainlink(currency);
+                    // var quote_in_usd = await getFXChainlink(currency);
                     var quote_in_usd = await getFXDimiWorkaround(currency);
-                    //Debug.print("getQuote ... " # debug_show(quote_in_usd));
                     let value_str = Float.toText(quote_in_usd);
                     let msymbol = Text.toUppercase(match.symbol);
                     let q : Types.CurrencyQuote = {
@@ -103,6 +91,7 @@ module {
             };
         };
 
+        // Get FX rate from Chainlink (currently not used)
         private func getFXChainlink(currency : Types.Currency) : async Float {
             let provider = await Utils.randomProvider();
             let web3 = Web3Helper.Web3(provider, true);
@@ -110,24 +99,18 @@ module {
             return await Utils.textToFloat(usd_price);
         };
 
-        //todo - for now just to demo we'll use custm rate feeds because initial algorithm
-        //for price feeds is not working on production
-        //these rates are cached for 10 minutes and calling them inbtween intervals
-        //shuld yield idential results to satisfy consensus
+        // Temporary workaround for FX rates
         private func getFXDimiWorkaround(currency : Types.Currency) : async Float {
             Debug.print("getFXDimiWorkaround " # debug_show (currency));
             let rate = await getUSDForexRateWorkaround(currency);
             switch (rate) {
                 case null return -1.00;
-                case (?rate) {
-                    return rate;
-                };
+                case (?rate) { return rate; };
             };
         };
 
-        //boostrap
+        // Bootstrap FX rates
         public func getFxBootstrap() : [Types.CurrencyQuote] {
-
             let usd : Types.CurrencyQuote = {
                 name = "USD";
                 symbol = "$";
@@ -187,8 +170,9 @@ module {
             inverseRate : ?Float;
         };
 
+        // Get Forex JSON from Supercart Service
         public func getForexJsonFromSupercartService(currency : Types.Currency) : async Text {
-            // Managment canister
+            // Management canister
             let ic : HttpTypes.IC = actor ("aaaaa-aa");
             let main_actor : HttpTypes.MainActor = actor (main_actor_id);
             if (Text.size(main_actor_id) < 4) {
@@ -216,7 +200,7 @@ module {
                 transform = ?transform_context;
             };
 
-            Cycles.add(500_000_000); //TODO:
+            Cycles.add(500_000_000); // Add cycles for the HTTP request
 
             let httpResponse : HttpTypes.HttpResponsePayload = await ic.http_request(httpRequest);
             if (httpResponse.status == 200) {
@@ -236,6 +220,7 @@ module {
             };
         };
 
+        // Get USD Forex rate workaround
         private func getUSDForexRateWorkaround(currency : Types.Currency) : async ?Float {
             let currencyName = currencyToText(currency);
             let jsonText = await getForexJsonFromSupercartService(currency);
