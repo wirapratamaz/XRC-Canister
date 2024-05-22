@@ -30,3 +30,4 @@ import { JSON; Candid; CBOR; } "mo:serde";
 import HU "mo:evm-txs/utils/HashUtils";
 import AU "mo:evm-txs/utils/ArrayUtils";
 import TU "mo:evm-txs/utils/TextUtils";
+import TokenF "./TokenFactory";
