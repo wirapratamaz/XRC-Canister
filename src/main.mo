@@ -132,4 +132,177 @@ actor {
             };
         };
     };
+
+    /* -------------------CHAINS----------------------- */
+    //get chains supported
+    public query getChains() : async [SupdTypes.TokenChain] {
+        let f = TokenF.TokenFactory(true);
+        let c = f.getChains();
+        return c;
+
+    };
+
+    /* -------------------TOKENS----------------------- */
+    //get tokens supported
+    public query func getTokens() : async [SupdTypes.Token] {
+        let f = TokenF.TokenFactory(true);
+        let t = f.getTokens();
+        return t;
+    };
+
+    //get tokens - serves from cache 
+    public query func getTokenWithQuotes() : async [SupdTypes.Token] {
+        let f = TokenF.TokenFactory(true);
+        let bootstrap = f.getTokens();
+        var result = List.nil<SupdTypes.Token>();
+        for (token in bootstrap.vals()){
+            let cached : ?SupdTypes.TokenQuote = getTokenQuoteCahced(token.name);
+            switch(cached) {
+                case null{
+                    result := List.push(token, result);
+                };
+                case(?cached){
+                    var clone : SupdTypes.Token = {
+                        name = token.name;
+                        token_type = token.token_type;
+                        abi = token.abi;
+                        contract = token.contract;
+                        chains = token.chains;
+                        created_at = token.created_at;
+                        decimals token.decimals;
+                        last_quote = ?cached;
+                        description = token.description;
+                        slug = token.slug;
+                    };
+                    result := List.push(clone, result);
+                };
+            };
+        };
+        //Debug.print("getTokensWithQuotes result: " # debug_show(result));
+        return List.toArray(result);
+    }; 
+
+    //get top n token quotes ordered by date desc
+    public query func getTokenQuoteHistory(token : Text, page_size : Nat) : async ?[SupdTypes.TokenQuote] {
+        assert(Text.size(token) > 2);
+        assert(page_size > 0 and page_size <= 100);
+        let filter = Text.toUppercase(token);        
+        let ok = Map.filterDesc(quoteStore, thash, func(k : Text, yo : SupdTypes.TokenQuote) : Bool {
+            yo.name == filter;
+        });
+        let filteredQuoteHistory = Map.vals(ok);        
+        let result : [SupdTypes.TokenQuote] = Iter.toArray(filteredQuoteHistory);
+        let top10_result = List.take(List.fromArray(result), page_size);
+        let a = List.toArray(top10_result);
+        return ?a;
+    };
+
+    /* -------------------FX----------------------- */
+    //get currencies supported - serves from cache 
+    public shared query func getCurrencies() : async ?[SupdTypes.CurrencyQuote] {        
+        let f = CurrencyF.CurrencyFactory("", true);
+        let bootstrap = f.getFxBootstrap();
+        var result = List.nil<SupdTypes.CurrencyQuote>();
+        for(currency in bootstrap.vals()){            
+            var cached : ?SupdTypes.CurrencyQuote = getQuoteCached(currency.name);            
+            switch(cached){
+                case null{
+                    result := List.push(currency, result);
+                };
+                case(?cached){
+                    result := List.push(cached, result);
+                };
+            };
+        };
+        return ?List.toArray(result);
+    };
+
+    //get fx quote with details - serves from cache
+    public func getQuote(fx_symbol : Text) : async ?SupdTypes.CurrencyQuote {
+        let cached = getQuoteCached(fx_symbol);        
+        if(cached != null){
+            return cached;
+        };
+        let this_canister_id = await canisterId(); //TODO:  optimize
+        let factory = CurrencyF.CurrencyFactory(this_canister_id, true);
+        let match = await factory.getCurrency(fx_symbol);
+        let quote = await factory.getQuote(match);
+        switch(quote){
+            case null return null;
+            case(?quote){
+                let anon = Principal.fromText("2vxsx-fae");
+                logPriceQuote(anon, quote, "getQuote testing");
+                return ?quote;
+            };
+        };
+    };
+
+    //get count of fx quotes
+    public query func getQuoteHistoryCount() : async Nat {        
+        let count = Map.size(currencyStore);        
+        return count;
+    };
+
+    //get top n fx quotes ordered by date desc
+    public query func getQuoteHistory(fx_symbol : Text, page_size : Nat) : async ?[SupdTypes.CurrencyQuote] {
+        assert(Text.size(fx_symbol) == 3);
+        assert(page_size > 0 and page_size <= 100);
+        let filter = Text.toUppercase(fx_symbol);        
+        let ok = Map.filterDesc(currencyStore, thash, func(k : Text, yo : SupdTypes.CurrencyQuote) : Bool {
+            yo.name == filter;
+        });
+        let filteredQuoteHistory = Map.vals(ok);
+        let result : [SupdTypes.CurrencyQuote] = Iter.toArray(filteredQuoteHistory);
+        let top10_result = List.take(List.fromArray(result), page_size);
+        let a = List.toArray(top10_result);
+        return ?a;
+    };
+
+    //get token with most recent price from cache FX_CACHE_TIME_SECONDS
+    private func getTokenQuoteCached(token : Text) : ?SupdTypes.TokenQuote {        
+        let filter = Text.toUppercase(token);            
+        let ok = Map.filterDesc(quoteStore, thash, func(k : Text, yo : SupdTypes.TokenQuote) : Bool {            
+            Text.toUppercase(yo.name) == filter;
+        });
+        if(Map.size(ok) > 0){
+            let most_recent = Iter.toArray(Map.vals(ok))[0];
+            switch(?most_recent){
+                case null return null;
+                case(?most_recent){        
+                    let now = Nat64.toNat(Utils.now_seconds());
+                    let cached_ts = Nat64.toNat(most_recent.created_at);                
+                    let diff = Nat.sub(now, cached_ts);
+                    if(diff > FX_CACHE_TIME_SECONDS){                                                
+                        return null;
+                    };
+                    //Debug.print("SERVING YOU FROM quoteStore CACHE for key: " # debug_show(filter));
+                    return ?most_recent;
+                };
+            };
+        };
+        return null;
+    };
+
+    /* ------------------- CANISTERGEEK ----------------------- */
+    public query ({caller}) func getCanisterMetrics(parameters: Canistergeek.GetMetricsParameters): async ?Canistergeek.CanisterMetrics {
+        validateCaller(caller);
+        canistergeekMonitor.getMetrics(parameters);
+    };
+
+    public shared ({caller}) func collectCanisterMetrics(): async () {
+        validateCaller(caller);
+        canistergeekMonitor.collectMetrics();
+    };
+    
+    public query ({caller}) func getCanisterLog(request: ?Canistergeek.CanisterLogRequest) : async ?Canistergeek.CanisterLogResponse {
+        validateCaller(caller);
+        return canistergeekLogger.getLog(request);
+    };
+    
+    private func validateCaller(principal: Principal) : () {
+        //data is available only for specific principal
+        if (not (Principal.toText(principal) == adminPrincipal)) {
+            Prelude.unreachable();
+        };
+    };
 };
