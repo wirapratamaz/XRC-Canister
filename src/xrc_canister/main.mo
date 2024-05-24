@@ -26,17 +26,17 @@ import Prelude "mo:base/Prelude";
 import Map "mo:map/Map";
 import { thash } "mo:map/Map";
 import Sha256 "mo:sha2/Sha256";
-import Hex "Hex";
+import Hex "../Hex";
 
-import HttpTypes "http/http";
-import SupdTypes "Types";
-import Utils "Utils";
+import HttpTypes "../http/http";
+import SupdTypes "../Types";
+import Utils "../Utils";
 
-import ChainF "helper/ChainFactory";
-import TokenF "helper/TokenFactory";
-import CurrencyF "currency/FXFactory";
-import PriceF "helper/PriceFactory";
-import TokenFactory "helper/TokenFactory";
+import ChainF "../helper/ChainFactory";
+import TokenF "../helper/TokenFactory";
+import CurrencyF "../currency/FXFactory";
+import PriceF "../helper/PriceFactory";
+import TokenFactory "../helper/TokenFactory";
 
 import Canistergeek "mo:canistergeek/canistergeek";
 
@@ -133,13 +133,12 @@ actor {
         };
     };
 
-    /* -------------------CHAINS----------------------- */
+     /* -------------------CHAINS----------------------- */
     //get chains supported
-    public query getChains() : async [SupdTypes.TokenChain] {
+    public query func getChains() : async [SupdTypes.TokenChain] {
         let f = TokenF.TokenFactory(true);
         let c = f.getChains();
         return c;
-
     };
 
     /* -------------------TOKENS----------------------- */
@@ -169,7 +168,7 @@ actor {
                         contract = token.contract;
                         chains = token.chains;
                         created_at = token.created_at;
-                        decimals token.decimals;
+                        decimals = token.decimals;
                         last_quote = ?cached;
                         description = token.description;
                         slug = token.slug;
