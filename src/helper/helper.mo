@@ -455,60 +455,6 @@ module Web3Helper {
         };
 
         /* ----------------- TRANSACTIONS ------------------- */
-        public func getTransactionReceipt(hash : Text, chain : Types.TokenChain, token : Types.TokenCurrency) : async ?Types.TransactionReceipt {
-
-            //  --data '
-            //     {
-            //     "id": 1,
-            //     "jsonrpc": "2.0",
-            //     "method": "eth_getTransactionReceipt",
-            //     "params": [
-            //         "0x..."
-            //     ]
-            //     }
-            //DATA, 32 Bytes - hash of a transaction
-            // params: [
-            // '0x...'
-            // ]
-
-            assert (pre_init() == true);
-            assert (Text.size(hash) == 66);
-
-            let p : EthJsonRpcParam = {
-                data = ?hash;
-                to = null;
-            };
-            let request : EthJsonRpcRequest = {
-                id = 0;
-                jsonrpc = "2.0";
-                method = "eth_getTransactionReceipt";
-                params = [p];
-            };
-            let response = await callEVM(request);
-
-            // let stripped = safeTransformEvm(response.result);
-            // let #ok(h) = Hex.decode(stripped) else return 0;
-            // var safeValue = AU.toNat256(h);
-            // return safeValue;
-
-            Debug.print("getTransactionReceipt ");
-            Debug.print("result " # debug_show (response));
-
-            let r : Types.TransactionReceipt = {
-                status = false;
-                transactionHash = "";
-                transactionIndex = 0;
-                blockHash = "";
-                blockNumber = 0;
-                contractAddress = "";
-                cumulativeGasUsed = 0;
-                gasUsed = 0;
-                chain = chain;
-                token_type = token;
-            };
-
-            return ?r;
-        };
 
         private func decode_abi(b64abi : Text) : ?Text {
             let blob = Text.encodeUtf8(b64abi);

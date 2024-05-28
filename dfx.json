@@ -23,8 +23,8 @@
     }
   },
   "defaults": {
-    "replica": {
-      "subnet_type": "system"
+    "build": {
+      "packtool": "mops sources"
     }
   },
   "version": 1
