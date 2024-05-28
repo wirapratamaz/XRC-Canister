@@ -6,6 +6,8 @@ module Types {
         #cad;
         #gbp;
         #chf;
+        #idr;
+        #jpy
     };
 
     //add new chain here and update TokenFactory
@@ -47,12 +49,12 @@ module Types {
 
     //add new service here and update PriceFactory with your implementation
     public type PriceService = {
-        #icpservice; //onchain
-        #coingecko; //offchain
-        #chainlink; //onchain
-        #coinmarketcap; //offchain
-        #kraken; //offchain
-        #testnet; //offchain
+        #icpservice; 
+        #coingecko; 
+        #chainlink; 
+        #coinmarketcap; 
+        #kraken; 
+        #testnet;
     };
 
     public type CurrencyQuote = {

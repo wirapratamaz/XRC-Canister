@@ -59,6 +59,8 @@ module {
                 case (#usd) { return "USD"; };
                 case (#gbp) { return "GBP"; };
                 case (#chf) { return "CHF"; };
+                case (#idr) { return "IDR"; };
+                case (#jpy) { return "JPY"; };
             };
         };
 
@@ -162,8 +164,28 @@ module {
                 currency_type = #chf;
                 description = ?"Swiss Franc";
             };
+            let idr : Types.CurrencyQuote = {
+                name = "IDR";
+                symbol = "Rp";
+                value = 0.00006329; // 1 USD = 15,800 IDR
+                value_str = "0.00006329";
+                source = ?"cache";
+                created_at = Utils.now_seconds();
+                currency_type = #idr;
+                description = ?"Indonesian Rupiah";
+            };
+            let jpy : Types.CurrencyQuote = {
+                name = "JPY";
+                symbol = "¥";
+                value = 0.00909091; // 1 USD = 110 JPY
+                value_str = "0.00909091";
+                source = ?"cache";
+                created_at = Utils.now_seconds();
+                currency_type = #jpy;
+                description = ?"Japanese Yen";
+            };
 
-            return [usd, cad, eur, gbp, chf];
+            return [usd, cad, eur, gbp, chf, idr, jpy];
         };
 
         public type ForexResult = {
