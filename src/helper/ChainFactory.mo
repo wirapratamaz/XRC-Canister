@@ -51,23 +51,13 @@ module ChainFactory {
             let tf = TokenF.TokenFactory(true);
             switch (chain) {
                 case (#eth_mainnet) {
-                    var tx_receipt = await web3.getTransactionReceipt(tx, chain, token);
-                    switch (tx_receipt) {
-                        case null return null;
-                        case (?tx_receipt) {
-                            return ?tx_receipt.status;
-                        };
-                    };
+                    // Add your logic here for eth_mainnet without using getTransactionReceipt
+                    Debug.trap("not implemented for eth_mainnet without getTransactionReceipt");
                 };
                 case (#eth_testnet) {
                     web3 := Web3Helper.Web3("https://sepolia.publicgoods.network", true);
-                    var tx_receipt = await web3.getTransactionReceipt(tx, chain, token);
-                    switch (tx_receipt) {
-                        case null return null;
-                        case (?tx_receipt) {
-                            return ?tx_receipt.status;
-                        };
-                    };
+                    // Add your logic here for eth_testnet without using getTransactionReceipt
+                    Debug.trap("not implemented for eth_testnet without getTransactionReceipt");
                 };
                 case (#icp_mainnet) {
                     let ok = await checkIcpForBlockConfirmed(tx, chain, token);

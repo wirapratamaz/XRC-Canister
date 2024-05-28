@@ -27,6 +27,7 @@ import Utils "../Utils";
 import HttpTypes "../http/http";
 import { Candid; CBOR; JSON; URLEncoded } "mo:serde";
 import Helper "../helper/helper";
+import Web3Helper "../helper/helper";
 
 // Build general class for exchange rates
 // Using a temporary price feed service for rates cached for 10 minutes for HTTPS outcall performance
