@@ -25,12 +25,11 @@ import Int64 "mo:base/Int64";
 import Error "mo:base/Error";
 import Map "mo:map/Map";
 import Sha256 "mo:sha2/Sha256";
-import HttpTypes "http/http.types";
+import HttpTypes "http/http";
 import Hex "Hex";
 import Types "Types";
 import Random "mo:base/Random";
 import { JSON; Candid; } "mo:serde";
-
 
 module {
     public func now() : Nat64 {

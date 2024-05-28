@@ -25,7 +25,7 @@ import Map "mo:map/Map";
 import Types "../Types";
 import Utils "../Utils";
 import HttpTypes "../http/http";
-import { Json; Candid; CBOR; URLEncoded } "mo:serde";
+import { Candid; CBOR; JSON; URLEncoded } "mo:serde";
 import Helper "../helper/helper";
 
 // Build general class for exchange rates
